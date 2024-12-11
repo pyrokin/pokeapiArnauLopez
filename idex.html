@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="script.js" defer></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <section id="numPokemon">
+        <label for="pokemonNumber" class="label">Selecciona el numero de pokemon que participaran en esta
+            batalla (1-6)</label>
+        <br>
+        <input type="number" id="pokemonNumber" min="1" max="6" value="1">
+    </section>
+    <section id="info" class="info">
+        <p id="infoText" class="infoText"></p>
+    </section>
+    <section id="team1" class="team1class">
+        <h2>Team 1</h2>
+        <button id="getPokemon">Get Pokémon for team 1</button>
+        <div id="teamContainer" class="teams">
+            <section id="team1pokemon" class="team1">
+            </section>
+        </div>
+        <button id="selectTeam1Pokemon">Select Pokémon</button>
+    </section>
+
+    <section id="team2" class="team2class">
+        <h2>Team 2</h2>
+        <button id="getPokemon2">Get Pokémon for team 2</button>
+        <div id="teamContainer2" class="teams">
+            <section id="team2pokemon" class="team2"></section>
+        </div>
+        <button id="selectTeam2Pokemon">Select Pokémon</button>
+    </section>
+
+    <section id="moves" class="moves">
+        <h2>Moves</h2>
+        <section id="moves" class="moves"></section>
+    </section>
+
+
+
+    <button id="battle" class="battle" disabled="true">Battle</button>
+
+
+
+    <template id="template">
+        <article id="" class="pokeEntry">
+            <h3 id="pokeName" class="pokeName"></h3>
+            <img src="" alt="pokemonImage" id="pokemonImage" class="pokemonImage">
+            <p id="abilities" class="abilities"></p>
+            <p id="type" class="type"></p>
+            <p id="atacks" class="atacks"></p>
+            <p id="defense" class="defense"></p>
+            <div class="moveset">
+                <p>Moves:</p>
+                <div class="moves-container"></div>
+            </div>
+        </article>
+    </template>
+
+</body>
+
+</html>
