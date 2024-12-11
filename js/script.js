@@ -4,10 +4,13 @@ let team2 = document.getElementById("team2pokemon");
 const addNewPokemon = document.getElementById("getPokemon");
 let numberOfPokemon = document.getElementById("pokemonNumber");
 let addNewPokemonforTeam2 = document.getElementById("getPokemon2");
-const begin_battle = document.getElementById("battle");
+const begin_battle = document.getElementById("startBattle");
+const firsttext = document.getElementById("first text");
+let additions = document.getElementById("additions");
 let infoText = document.getElementById("infoText");
 let selectedTeam1Pokemon = null;
 let selectedTeam2Pokemon = null;
+let defeated = false;
 setInterval(() => {
     let pokemonLimit = numberOfPokemon.value;
     if (team2.children.length >= pokemonLimit) {
@@ -17,7 +20,7 @@ setInterval(() => {
         addNewPokemon.disabled = true;
     }
     if ((team1.children.length != 0) && (team2.children.length != 0)) {
-        begin_battle.disabled = false;
+        firsttext.style.display = "block";
     }
 }, 1)
 function applyTypeClass(card, types) {
@@ -66,7 +69,7 @@ async function fetchData(toAppend) {
     await addMovesToCard(card, data.moves, attackerAttack, defenderCard);
 
     toAppend.appendChild(card);
-    infoText.innerHTML += `The Pokémon ${data.name} has been added to the team!<br>`;
+    additions.innerHTML += `The Pokémon ${data.name} has been added to the team!<br>`;
 }
 
 function randomNumber() {
@@ -79,8 +82,6 @@ addNewPokemon.addEventListener("click", () => {
     for (let i = 0; i < numberOfPokemon.value; i++) {
         fetchData(team1);
     }
-
-
 });
 
 
@@ -88,7 +89,7 @@ addNewPokemonforTeam2.addEventListener("click", () => {
     for (let i = 0; i < numberOfPokemon.value; i++) {
         fetchData(team2);
     }
-
+    fightTurn(counter);
 });
 
 function showAbilities(numberRandom) {
@@ -100,25 +101,7 @@ function showAbilities(numberRandom) {
     infoText.innerHTML += `Random Pokémon abilities: ${abilities}<br>`;
 }
 
-document.getElementById("selectTeam1Pokemon").addEventListener("click", () => {
-    if (team1.children.length === 0) {
-        infoText.innerHTML += "No Pokémon available to select in Team 1!<br>";
-        return;
-    }
-    const randomIndex = Math.floor(Math.random() * team1.children.length);
-    selectedTeam1Pokemon = team1.children[randomIndex];
-    infoText.innerHTML += `Selected Pokémon from Team 1: ${selectedTeam1Pokemon.querySelector(".pokeName").textContent}<br>`;
-});
 
-document.getElementById("selectTeam2Pokemon").addEventListener("click", () => {
-    if (team2.children.length === 0) {
-        infoText.innerHTML += "No Pokémon available to select in Team 2!<br>";
-        return;
-    }
-    const randomIndex = Math.floor(Math.random() * team2.children.length);
-    selectedTeam2Pokemon = team2.children[randomIndex];
-    infoText.innerHTML += `Selected Pokémon from Team 2: ${selectedTeam2Pokemon.querySelector(".pokeName").textContent}<br>`;
-});
 
 function assignInitialHP(card) {
     const hp = 100;
@@ -128,75 +111,29 @@ function assignInitialHP(card) {
     hpElement.textContent = `HP: ${hp}`;
     card.appendChild(hpElement);
 }
-
-
-
-function fightTurn() {
-    if (!selectedTeam1Pokemon || !selectedTeam2Pokemon) {
-        infoText.innerHTML += "Both teams need to select a Pokémon before the battle!<br>";
-        return;
+function fightTurn(turn) {
+    if (turn % 2 == 0) {
+        let attacker = team2;
+        let defender = team1;
+        if (defender.classList.contains('blurred')) {
+            defender.classList.remove("blurred");
+        }
+        attacker.classList.add("blurred");
     }
-
-    // Seleccionar movimientos aleatorios para ambos Pokémon
-    const team1Moves = Array.from(selectedTeam1Pokemon.querySelector(".moves-container").children);
-    const team2Moves = Array.from(selectedTeam2Pokemon.querySelector(".moves-container").children);
-
-    if (team1Moves.length === 0 || team2Moves.length === 0) {
-        infoText.innerHTML += "Both Pokémon must have moves to fight!<br>";
-        return;
+    else {
+        let attacker = team1;
+        let defender = team2;
+        if (defender.classList.contains('blurred')) {
+            defender.classList.remove("blurred");
+        }
+        attacker.classList.add("blurred");
     }
-
-    const team1MoveButton = team1Moves[Math.floor(Math.random() * team1Moves.length)];
-    const team2MoveButton = team2Moves[Math.floor(Math.random() * team2Moves.length)];
-
-    // Obtener información de los movimientos
-    const team1MoveName = team1MoveButton.textContent.split(" (")[0];
-    const team1MovePower = parseInt(team1MoveButton.textContent.split("(")[1].split(")")[0]) || 0;
-
-    const team2MoveName = team2MoveButton.textContent.split(" (")[0];
-    const team2MovePower = parseInt(team2MoveButton.textContent.split("(")[1].split(")")[0]) || 0;
-
-    // Obtener estadísticas de ataque y defensa
-    const team1Attack = parseInt(selectedTeam1Pokemon.querySelector(".atacks").textContent.split(": ")[1]);
-    const team2Attack = parseInt(selectedTeam2Pokemon.querySelector(".atacks").textContent.split(": ")[1]);
-    const team1Defense = parseInt(selectedTeam1Pokemon.querySelector(".defense").textContent.split(": ")[1]);
-    const team2Defense = parseInt(selectedTeam2Pokemon.querySelector(".defense").textContent.split(": ")[1]);
-
-    // Calcular daño
-    const damageToTeam1 = calculateDamage(team2MovePower, team2Attack, team1Defense);
-    const damageToTeam2 = calculateDamage(team1MovePower, team1Attack, team2Defense);
-
-    // Aplicar daño
-    applyDamage(selectedTeam1Pokemon, damageToTeam1);
-    applyDamage(selectedTeam2Pokemon, damageToTeam2);
-
-    // Actualizar el registro de combate
-    infoText.innerHTML += `
-        Team 1's ${selectedTeam1Pokemon.querySelector(".pokeName").textContent} used ${team1MoveName}, dealing ${damageToTeam2} damage!<br>
-        Team 2's ${selectedTeam2Pokemon.querySelector(".pokeName").textContent} used ${team2MoveName}, dealing ${damageToTeam1} damage!<br>
-    `;
-
-    // Comprobar derrotas
-    const team1HP = parseInt(selectedTeam1Pokemon.querySelector(".hp").textContent.split(": ")[1]);
-    const team2HP = parseInt(selectedTeam2Pokemon.querySelector(".hp").textContent.split(": ")[1]);
-
-    if (team1HP <= 0) {
-        infoText.innerHTML += `Team 1's ${selectedTeam1Pokemon.querySelector(".pokeName").textContent} is defeated!<br>`;
-    }
-
-    if (team2HP <= 0) {
-        infoText.innerHTML += `Team 2's ${selectedTeam2Pokemon.querySelector(".pokeName").textContent} is defeated!<br>`;
-    }
-
-    // Reiniciar selección para el próximo turno
-    selectedTeam1Pokemon = null;
-    selectedTeam2Pokemon = null;
 }
-
-
-begin_battle.addEventListener("click", () => {
-    fightTurn();
-});
+// function takeoutBlurr() {
+//     team1.classList.remove("blurred");
+//     team2.classList.remove("blurred");
+// }
+let counter = 0;
 
 // Genera un daño basado en el ataque, defensa y daño del movimiento
 function calculateDamage(movePower, attackerAttack, defenderDefense) {
@@ -227,28 +164,41 @@ function applyDamage(targetCard, damage) {
     currentHP = Math.max(currentHP, 0);
 
     hpElement.textContent = `HP: ${currentHP}`;
-
     // Si el HP llega a 0, el Pokémon queda derrotado
     if (currentHP === 0) {
         updateCardColorForDefeat(targetCard);
         targetCard.querySelector(".moves-container").innerHTML = "Defeated!";
+        infoText.innerHTML += `${targetCard.querySelector(".pokeName").textContent} has been defeated.<br>`;
+        if (counter % 2 == 0) {
+            infoText.innerHTML += 'El ganador es el jugador 2 !';
+            team1.classList.add("blurred");
+            team2.classList.remove("blurred");
+        }
+        else {
+            infoText.innerHTML += 'El ganador es el jugador 1 !';
+            team2.classList.add("blurred");
+            team1.classList.remove("blurred");
+        }
+        defeated = true;
     }
 }
-
+// function changeTurn() {
+//     if (team1.children.length != 0 && team2.children.length != 0) {
+//         infoText.innerHTML += `Battle started between ${team1.children.length} and ${team2.children.length} pokemon.<br>`;
+//         infoText.innerHTML += 'Es el turno del jugador ' + (counter % 2 + 1) + '<br>';
+//     }
+// }
 
 // Añade los movimientos como botones a la tarjeta del Pokémon
 async function addMovesToCard(card, data_moves, attackerAttack, defenderCard) {
     const movesContainer = card.querySelector(".moves-container");
-
     for (let i = 0; i < Math.min(4, data_moves.length); i++) {
         const move = data_moves[i];
         const moveData = await fetchDataMovements(move.move.url);
-
         // Crear el botón del movimiento
         const moveButton = document.createElement("button");
         moveButton.textContent = `${moveData.name} (${moveData.power || "N/A"})`;
         moveButton.classList.add("move-button");
-
         // Asigna un evento al botón para seleccionar objetivo y aplicar el movimiento
         moveButton.addEventListener("click", () => {
             if (!moveData.power) {
@@ -262,8 +212,11 @@ async function addMovesToCard(card, data_moves, attackerAttack, defenderCard) {
                 alert("No Pokémon available in the opposing team!");
                 return;
             }
-
             // Crear un mensaje para seleccionar objetivo
+            fightTurn(counter);
+            counter++;
+            console.log(counter);
+            fightTurn(counter);
             const targetSelector = document.createElement("div");
             targetSelector.classList.add("target-selector");
             targetSelector.innerHTML = `<p>Select a target Pokémon:</p>`;
@@ -273,13 +226,18 @@ async function addMovesToCard(card, data_moves, attackerAttack, defenderCard) {
                 targetButton.classList.add("target-button");
 
                 // Al seleccionar un objetivo, aplicar daño
+
                 targetButton.addEventListener("click", () => {
                     const defenderDefense = parseInt(defender.querySelector(".defense").textContent.split(": ")[1]);
                     const damage = calculateDamage(moveData.power, attackerAttack, defenderDefense);
                     applyDamage(defender, damage);
-
+                    if (!defeated)
+                        infoText.innerHTML += `Damage dealt to ${defenderCard.querySelector(".pokeName").textContent}: ${damage}<br>`;
                     // Remover selector de objetivo después de usar
+                    if (!defeated)
+                        infoText.innerHTML += 'Es el turno del jugador ' + (counter % 2 + 1) + '<br>';
                     document.body.removeChild(targetSelector);
+                    // takeoutBlurr();
                 });
 
                 targetSelector.appendChild(targetButton);
@@ -287,9 +245,14 @@ async function addMovesToCard(card, data_moves, attackerAttack, defenderCard) {
 
             // Agregar selector al DOM
             document.body.appendChild(targetSelector);
-        });
 
+        });
         movesContainer.appendChild(moveButton);
+
+    }
+    if (team1.children.length != 0) {
+        firsttext.innerHTML += `Batalla empezada entre ${team1.children.length} y ${team2.children.length} pokemon.<br>`;
+        firsttext.innerHTML += 'Es el turno del jugador ' + (counter % 2 + 1) + '<br>';
     }
 }
 
