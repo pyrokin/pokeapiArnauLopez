@@ -11,15 +11,15 @@ let infoText = document.getElementById("infoText");
 let selectedTeam1Pokemon = null;
 let selectedTeam2Pokemon = null;
 let defeated = false;
+let pokemonLimit = numberOfPokemon.value;
 setInterval(() => {
-    let pokemonLimit = numberOfPokemon.value;
     if (team2.children.length >= pokemonLimit) {
         addNewPokemonforTeam2.disabled = true;
     }
     if (team1.children.length >= pokemonLimit) {
         addNewPokemon.disabled = true;
     }
-    if ((team1.children.length != 0) && (team2.children.length != 0)) {
+    if ((team1.children.length == pokemonLimit) && (team2.children.length != pokemonLimit)) {
         firsttext.style.display = "block";
     }
 }, 1)
@@ -250,8 +250,8 @@ async function addMovesToCard(card, data_moves, attackerAttack, defenderCard) {
         movesContainer.appendChild(moveButton);
 
     }
-    if (team1.children.length != 0) {
-        firsttext.innerHTML += `Batalla empezada entre ${team1.children.length} y ${team2.children.length} pokemon.<br>`;
+    if (team1.children.length == pokemonLimit) {
+        firsttext.innerHTML += `Batalla empezada! <br>`;
         firsttext.innerHTML += 'Es el turno del jugador ' + (counter % 2 + 1) + '<br>';
     }
 }
