@@ -187,9 +187,21 @@ function calculateDamageWithTypes(movePower, attackerAttack, defenderDefense, at
             typeEffectiveness *= 0.5; // Not very effective
         }
     });
-
+    let damage = 0;
+    if (movePower >= 100) {
+        if (Math.floor(Math.random() * 20) <= 3) {
+            damage = Math.max(Math.floor((movePower * ((attackerAttack) / defenderDefense)) + 2), 1);
+            console.log("pepe" + damage);
+            return damage;
+        }
+        else {
+            damage = Math.max(Math.floor((movePower * 0.25 * ((attackerAttack) / defenderDefense)) + 1), 1);
+            console.log("2do" + damage);
+            return damage;
+        }
+    }
     // Calcular el daño
-    const damage = Math.floor(((movePower * (attackerAttack / defenderDefense)) * typeEffectiveness) / 2);
+    damage = Math.floor(((movePower * (attackerAttack / defenderDefense)) * typeEffectiveness) / 2);
     return damage > 0 ? damage : 1;
 }
 let counter = 0;
