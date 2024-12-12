@@ -16,8 +16,15 @@
         <br>
         <input type="number" id="pokemonNumber" min="1" max="6" value="1">
     </section>
-    <button id="startBattle" disabled="true">Start Battle</button>
+    <div id="battleModeSelection">
+        <label for="battleMode">Select Battle Mode:</label>
+        <select id="battleMode">
+            <option value="pvp">Player vs Player</option>
+            <option value="pvm">Player vs Machine</option>
+        </select>
+    </div>
     <section id="info" class="info">
+        <h2>Movements</h2>
         <p id="additions"></p>
         <div id="first text" style="display: none;"></div>
         <p id="infoText" class="infoText">

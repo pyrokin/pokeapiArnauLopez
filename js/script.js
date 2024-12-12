@@ -11,17 +11,28 @@ let infoText = document.getElementById("infoText");
 let selectedTeam1Pokemon = null;
 let selectedTeam2Pokemon = null;
 let defeated = false;
+let pokemonLimit = numberOfPokemon.value;
+
+const typeChart = {
+    normal: { rock: 0.5, ghost: 0, steel: 0.5 },
+    fire: { fire: 0.5, water: 0.5, grass: 2, ice: 2, bug: 2, rock: 0.5, dragon: 0.5, steel: 2 },
+    water: { fire: 2, water: 0.5, grass: 0.5, ground: 2, rock: 2, dragon: 0.5 },
+    grass: { fire: 0.5, water: 2, grass: 0.5, poison: 0.5, ground: 2, flying: 0.5, bug: 0.5, rock: 2, dragon: 0.5, steel: 0.5 },
+    // Add other types here...
+    default: {}
+};
+
 setInterval(() => {
-    let pokemonLimit = numberOfPokemon.value;
     if (team2.children.length >= pokemonLimit) {
         addNewPokemonforTeam2.disabled = true;
     }
     if (team1.children.length >= pokemonLimit) {
         addNewPokemon.disabled = true;
     }
-    if ((team1.children.length != 0) && (team2.children.length != 0)) {
+    if ((team1.children.length == pokemonLimit) && (team2.children.length != pokemonLimit)) {
         firsttext.style.display = "block";
     }
+
 }, 1)
 function applyTypeClass(card, types) {
     const primaryType = types[0]?.type.name || "default";
@@ -29,7 +40,6 @@ function applyTypeClass(card, types) {
 }
 
 function updateCardColorForDefeat(card) {
-    card.classList.remove(...Array.from(card.classList).filter(cls => cls.startsWith('type-')));
     card.classList.add('defeated');
 }
 async function fetchDataMovements(moveUrl) {
@@ -111,6 +121,91 @@ function assignInitialHP(card) {
     hpElement.textContent = `HP: ${hp}`;
     card.appendChild(hpElement);
 }
+
+// Get the battle mode selection
+const battleMode = document.getElementById("battleMode");
+
+function machineTurn() {
+    if (team2.children.length === 0 || team1.children.length === 0) {
+        return; // No Pokémon left to battle
+    }
+    // Filtra los hijos de team2 para excluir los que tienen la clase 'Defeated'
+    const availablePokemon = Array.from(team2.children).filter(child => !child.classList.contains('defeated'));
+    let machinePokemon = null;
+    // Selecciona uno aleatorio de los que no están derrotados
+    if (availablePokemon.length > 0) {
+        machinePokemon = availablePokemon[Math.floor(Math.random() * availablePokemon.length)];
+        console.log(machinePokemon.querySelector(".pokeName").textContent);
+    } else {
+        console.log("No hay Pokémon disponibles que no estén derrotados.");
+    }
+    // Maquina selecciona el movimiento con mayor poder
+    const moveButtons = Array.from(machinePokemon.querySelectorAll(".move-button"));
+    if (!moveButtons.length) return;
+
+    const bestMoveButton = moveButtons.reduce((best, current) => {
+        const bestPower = parseInt(best.textContent.match(/\((\d+)\)/)?.[1] || "0");
+        const currentPower = parseInt(current.textContent.match(/\((\d+)\)/)?.[1] || "0");
+        return currentPower > bestPower ? current : best;
+    });
+
+    const movePower = parseInt(bestMoveButton.textContent.match(/\((\d+)\)/)?.[1] || "0");
+    const attackerAttack = parseInt(machinePokemon.querySelector(".atacks").textContent.split(": ")[1]);
+
+    // La maquina selecciona un objetivo aleatorio del equipo contrario
+    const defenderOptions = Array.from(team1.children);
+    const targetPokemon = defenderOptions[Math.floor(Math.random() * defenderOptions.length)];
+
+    if (!movePower || !targetPokemon) return;
+
+    // Calcular y aplicar daño
+    const defenderDefense = parseInt(targetPokemon.querySelector(".defense").textContent.split(": ")[1]);
+    const damage = calculateDamageWithTypes(movePower, attackerAttack, defenderDefense, machinePokemon, targetPokemon);
+    applyDamage(targetPokemon, damage);
+
+    infoText.innerHTML += `Machine's Pokémon ${machinePokemon.querySelector(".pokeName").textContent} used ${bestMoveButton.textContent.split(" (")[0]}!<br>`;
+    if (!defeated) infoText.innerHTML += `Damage dealt: ${damage}.<br>`;
+    counter++;
+}
+function calculateDamageWithTypes(movePower, attackerAttack, defenderDefense, attackerPokemon, defenderPokemon) {
+    // Extract types
+    const defenderTypeElement = defenderPokemon.querySelector(".types");
+    let defenderTypes = defenderTypeElement ? defenderTypeElement.textContent.split(", ") : [];
+
+    if (!Array.isArray(defenderTypes)) {
+        console.error("Defender types is not an array:", defenderTypes);
+        defenderTypes = []; // Prevenir crash con empty array
+    }
+
+    let typeEffectiveness = 1;
+
+    // Comprobar efectividad de tipos
+    defenderTypes.forEach(defenderType => {
+        if (typeAdvantages[attackerPokemon.type] && typeAdvantages[attackerPokemon.type].includes(defenderType)) {
+            typeEffectiveness *= 2; // Super effective
+        } else if (typeAdvantages[defenderType] && typeAdvantages[defenderType].includes(attackerPokemon.type)) {
+            typeEffectiveness *= 0.5; // Not very effective
+        }
+    });
+
+    // Calcular el daño
+    const damage = Math.floor(((movePower * (attackerAttack / defenderDefense)) * typeEffectiveness) / 2);
+    return damage > 0 ? damage : 1;
+}
+let counter = 0;
+function battleTurn() {
+    console.log("valor es de:", battleMode.value);
+    console.log("Valor de conunter en battleTurn", counter);
+    if (battleMode.value === "pvp") {
+        console.log(counter);
+        counter++;
+        fightTurn(counter);
+    } else if (battleMode.value === "pvm") {
+        machineTurn();
+        fightTurn(0);
+        counter++;
+    }
+}
 function fightTurn(turn) {
     if (turn % 2 == 0) {
         let attacker = team2;
@@ -120,7 +215,7 @@ function fightTurn(turn) {
         }
         attacker.classList.add("blurred");
     }
-    else {
+    else if (turn % 2 == 1) {
         let attacker = team1;
         let defender = team2;
         if (defender.classList.contains('blurred')) {
@@ -129,31 +224,42 @@ function fightTurn(turn) {
         attacker.classList.add("blurred");
     }
 }
+
+battleMode.addEventListener("change", () => {
+    infoText.innerHTML += `Battle mode set to: ${battleMode.value === "pvp" ? "Player vs Player" : "Player vs Machine"}.<br>`;
+});
 // function takeoutBlurr() {
 //     team1.classList.remove("blurred");
 //     team2.classList.remove("blurred");
 // }
-let counter = 0;
+
 
 // Genera un daño basado en el ataque, defensa y daño del movimiento
-function calculateDamage(movePower, attackerAttack, defenderDefense) {
-    let damage = 0;
-    if (movePower >= 100) {
-        if (Math.floor(Math.random() * 20) <= 3) {
-            damage = Math.max(Math.floor((movePower * ((attackerAttack) / defenderDefense)) + 2), 1);
-            console.log("pepe" + damage);
-            return damage;
-        }
-        else {
-            damage = Math.max(Math.floor((movePower * 0.25 * ((attackerAttack) / defenderDefense)) + 1), 1);
-            console.log("2do" + damage);
-            return damage;
-        }
+function calculateDamage(movePower, attackerAttack, defenderDefense, moveType, defenderTypes) {
+    // Calculo Base damage
+    let damage = Math.max(Math.floor((movePower * 0.5 * (attackerAttack / defenderDefense)) + 2), 1);
+
+    // Calcular efectividad de tipo
+    let effectiveness = 1; // Default neutral
+    defenderTypes.forEach(defenderType => {
+        effectiveness *= typeChart[moveType]?.[defenderType] || 1; // Vuelve a neutral si no hay efectividad
+    });
+
+    // Ajustar daño según la efectividad
+    damage = Math.floor(damage * effectiveness);
+    console.log("El efecto es:", effectiveness);
+    // Poner información en pantalla
+    if (effectiveness > 1) {
+        infoText.innerHTML += "It's super effective!<br>";
+    } else if (effectiveness < 1 && effectiveness > 0) {
+        infoText.innerHTML += "It's not very effective...<br>";
+    } else if (effectiveness === 0) {
+        infoText.innerHTML += "It had no effect.<br>";
     }
-    damage = Math.max(Math.floor((movePower * 0.5 * ((attackerAttack) / defenderDefense)) + 2), 1);
-    console.log("ultimo" + damage);
+
     return damage;
 }
+
 // Aplica daño al objetivo y verifica si es derrotado
 function applyDamage(targetCard, damage) {
     const hpElement = targetCard.querySelector(".hp");
@@ -169,25 +275,50 @@ function applyDamage(targetCard, damage) {
         updateCardColorForDefeat(targetCard);
         targetCard.querySelector(".moves-container").innerHTML = "Defeated!";
         infoText.innerHTML += `${targetCard.querySelector(".pokeName").textContent} has been defeated.<br>`;
-        if (counter % 2 == 0) {
-            infoText.innerHTML += 'El ganador es el jugador 2 !';
-            team1.classList.add("blurred");
-            team2.classList.remove("blurred");
-        }
-        else {
-            infoText.innerHTML += 'El ganador es el jugador 1 !';
-            team2.classList.add("blurred");
-            team1.classList.remove("blurred");
-        }
-        defeated = true;
+        // Verificar si todos los Pokémon han sido derrotados
+        allPokemonDefeated();
     }
 }
+
+
+
 // function changeTurn() {
 //     if (team1.children.length != 0 && team2.children.length != 0) {
 //         infoText.innerHTML += `Battle started between ${team1.children.length} and ${team2.children.length} pokemon.<br>`;
 //         infoText.innerHTML += 'Es el turno del jugador ' + (counter % 2 + 1) + '<br>';
 //     }
 // }
+function allPokemonDefeated() {
+    // Verifica si todos los Pokémon de team1 o team2 tienen la clase "defeated"
+    const allTeam1Defeated = Array.from(team1.children).every(child => child.classList.contains("defeated"));
+    const allTeam2Defeated = Array.from(team2.children).every(child => child.classList.contains("defeated"));
+
+    if (allTeam1Defeated || allTeam2Defeated) {
+        infoText.innerHTML += "All Pokémon have been defeated.<br>";
+
+        if (allTeam1Defeated) {
+            if (battleMode.value === "pvm") {
+                infoText.innerHTML += 'El ganador es la máquina!<br>';
+            } else {
+                infoText.innerHTML += 'El ganador es el jugador 2!<br>';
+            }
+            team1.classList.add("blurred");
+            team2.classList.remove("blurred");
+        }
+
+        if (allTeam2Defeated) {
+            if (battleMode.value === "pvm") {
+                infoText.innerHTML += 'El ganador es el jugador!<br>';
+            } else {
+                infoText.innerHTML += 'El ganador es el jugador 1!<br>';
+            }
+            team2.classList.add("blurred");
+            team1.classList.remove("blurred");
+        }
+
+        defeated = true; // Marca la batalla como finalizada
+    }
+}
 
 // Añade los movimientos como botones a la tarjeta del Pokémon
 async function addMovesToCard(card, data_moves, attackerAttack, defenderCard) {
@@ -213,10 +344,8 @@ async function addMovesToCard(card, data_moves, attackerAttack, defenderCard) {
                 return;
             }
             // Crear un mensaje para seleccionar objetivo
-            fightTurn(counter);
-            counter++;
-            console.log(counter);
-            fightTurn(counter);
+            console.log("Counter de turno3", counter);
+            battleTurn();
             const targetSelector = document.createElement("div");
             targetSelector.classList.add("target-selector");
             targetSelector.innerHTML = `<p>Select a target Pokémon:</p>`;
@@ -228,30 +357,35 @@ async function addMovesToCard(card, data_moves, attackerAttack, defenderCard) {
                 // Al seleccionar un objetivo, aplicar daño
 
                 targetButton.addEventListener("click", () => {
+                    const moveType = moveData.type.name;
+                    const defenderTypes = Array.from(defender.querySelector(".type").textContent.replace("Type: ", "").split(", "));
                     const defenderDefense = parseInt(defender.querySelector(".defense").textContent.split(": ")[1]);
-                    const damage = calculateDamage(moveData.power, attackerAttack, defenderDefense);
+                    const damage = calculateDamage(moveData.power, attackerAttack, defenderDefense, moveType, defenderTypes);
                     applyDamage(defender, damage);
                     if (!defeated)
-                        infoText.innerHTML += `Damage dealt to ${defenderCard.querySelector(".pokeName").textContent}: ${damage}<br>`;
+                        console.log(defender.querySelector(".pokeName").textContent);
+                    infoText.innerHTML += `Damage dealt to ${defender.querySelector(".pokeName").textContent}: ${damage}<br>`;
                     // Remover selector de objetivo después de usar
-                    if (!defeated)
+                    if (!defeated) {
+                        console.log("Counter de turno2", counter);
                         infoText.innerHTML += 'Es el turno del jugador ' + (counter % 2 + 1) + '<br>';
+                    }
                     document.body.removeChild(targetSelector);
                     // takeoutBlurr();
                 });
 
                 targetSelector.appendChild(targetButton);
             });
-
+            allPokemonDefeated();
             // Agregar selector al DOM
             document.body.appendChild(targetSelector);
-
         });
         movesContainer.appendChild(moveButton);
 
     }
-    if (team1.children.length != 0) {
-        firsttext.innerHTML += `Batalla empezada entre ${team1.children.length} y ${team2.children.length} pokemon.<br>`;
+    if (team1.children.length == pokemonLimit) {
+        firsttext.innerHTML += `Batalla empezada! <br>`;
+        console.log("Counter de turno", counter);
         firsttext.innerHTML += 'Es el turno del jugador ' + (counter % 2 + 1) + '<br>';
     }
 }
