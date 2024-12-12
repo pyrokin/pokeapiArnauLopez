@@ -1,4 +1,38 @@
 /* Estilos base */
+/* Sidebar for the info section */
+.info {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 300px;
+    /* Adjust width as needed */
+    height: 100vh;
+    /* Full height */
+    background-color: #f4f4f4;
+    /* Light background */
+    border-right: 2px solid #ddd;
+    /* Optional border */
+    overflow-y: auto;
+    /* Enable vertical scrolling */
+    padding: 10px;
+    /* Add some padding */
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    /* Subtle shadow for depth */
+    z-index: 100;
+    /* Ensure it appears above other content */
+}
+
+/* Adjust main content to leave space for the sidebar */
+body {
+    margin-left: 400px;
+}
+
+/* Optional: Style for infoText inside the sidebar */
+.infoText {
+    font-size: 14px;
+    line-height: 1.6;
+}
+
 /* Container to display Pokémon cards in a row */
 .teams {
     display: flex;
