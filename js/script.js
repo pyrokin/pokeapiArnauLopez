@@ -236,8 +236,21 @@ battleMode.addEventListener("change", () => {
 
 // Genera un daño basado en el ataque, defensa y daño del movimiento
 function calculateDamage(movePower, attackerAttack, defenderDefense, moveType, defenderTypes) {
+    let damage = 0;
+    if (movePower >= 100) {
+        if (Math.floor(Math.random() * 20) <= 3) {
+            damage = Math.max(Math.floor((movePower * ((attackerAttack) / defenderDefense)) + 2), 1);
+            console.log("pepe" + damage);
+            return damage;
+        }
+        else {
+            damage = Math.max(Math.floor((movePower * 0.25 * ((attackerAttack) / defenderDefense)) + 1), 1);
+            console.log("2do" + damage);
+            return damage;
+        }
+    }
     // Calculo Base damage
-    let damage = Math.max(Math.floor((movePower * 0.5 * (attackerAttack / defenderDefense)) + 2), 1);
+    damage = Math.max(Math.floor((movePower * 0.5 * (attackerAttack / defenderDefense)) + 2), 1);
 
     // Calcular efectividad de tipo
     let effectiveness = 1; // Default neutral
