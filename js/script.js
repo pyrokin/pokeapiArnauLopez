@@ -30,6 +30,8 @@ const typeChart = {
     ghost: { normal: 0, poison: 0.5, bug: 0.5, ghost: 2, dark: 2 },
     dragon: { dragon: 2, steel: 0.5 },
     dark: { fighting: 0.5, psychic: 0.5, ghost: 2, dark: 0.5 },
+    steel: { fire: 0.5, water: 0.5, electric: 0.5, steel: 0.5 },
+    fairy: { fire: 0.5, grass: 2, fighting: 0.5, poison: 0.5, bug: 0.5, dark: 2 },
     default: {}
 };
 
