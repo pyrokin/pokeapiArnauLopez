@@ -243,7 +243,7 @@ function fightTurn(turn) {
     else if (turn % 2 == 1) {
         let attacker = team1;
         let defender = team2;
-        if (defender.classList.contains('blurred')) {
+        if (defender.classList.contains('blurred')) { //toggle as alternative
             defender.classList.remove("blurred");
         }
         attacker.classList.add("blurred");
